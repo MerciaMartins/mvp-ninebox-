@@ -105,7 +105,13 @@ O ponto de entrada do sistema. Orquestra a execução de todas as etapas:
 *   Aplica o modelo Nine Box (`NineBox.ts`).
 *   Exibe a classificação final ao usuário.
 
-## 📊 Significado dos 9 Quadrantes
+## 📊 Modelo Nine Box
+
+A Matriz Nine Box (9-Box Grid) é uma ferramenta de gestão de talentos que avalia os colaboradores em duas dimensões: Potencial (eixo Y) e Desempenho (eixo X).
+
+![Matriz Nine Box](https://private-us-east-1.manuscdn.com/sessionFile/xA16mghhAK6dqeewhi9i10/sandbox/pSmIyhxGoSgvmo1S9eVXo8-images_1765178955161_na1fn_L2hvbWUvdWJ1bnR1L21hdHJpei05LWJveA.png?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUveEExNm1naGhBSzZkcWVld2hpOWkxMC9zYW5kYm94L3BTbUl5aHhHb1Nndm1vMVM5ZVZYbzgtaW1hZ2VzXzE3NjUxNzg5NTUxNjFfbmExZm5fTDJodmJXVXZkV0oxYm5SMUwyMWhkSEpwZWkwNUxXSnZlQS5wbmciLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=TfNXwFtu~Az2X0ZNOy8Jtn-jgWr05qAtg0XYt2-qmYgUpLYM9FYL3~yExwYn7AQWnKXw57bwpFq5GOzMrx8lRj5o4J62SLjxGws-6k-7qlM6If8nCUpQeqhg3skckgpQ~kDeZpM4I2mSBFIoPE5EOBxRQ94YU6MDO-mzOznROAVrWPh0wNe1H4WUw3P2u1vU4IcIhWYyvG4SD7NBc8Sh~AqgErvWDlLRhfpfe7EBJkdHrG8n1~V~FEH9eyxQ4odAhKo~aMIR0HlmwIwJsi80VYCu7sN8uW2z3swCQP0Rw8qHO2lPK3RY3JrYYc2~nm3dgEsKdm91l3vxbfjX4222PA__)
+
+### Significado dos 9 Quadrantes
 
 A tabela a seguir detalha o significado de cada quadrante da matriz Nine Box:
 
