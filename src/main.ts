@@ -1,68 +1,79 @@
 // src/main.ts
 import { Questionario } from "./core/Questionario";
+import { BancoQuestoes } from "./core/BancoQuestoes";
+import { MenuQuestoes } from "./ui/MenuQuestoes";
+import { NivelAcesso, Resposta } from "./core/Tipos";
 import { NineBox } from "./core/NineBox";
 import { ConsoleInterface } from "./ui/ConsoleInterface";
 
 async function main() {
   const ui = new ConsoleInterface();
+  const banco = new BancoQuestoes();
+  banco.popularExemplo();
+  const menuQuestoes = new MenuQuestoes(banco, ui);
 
-  const opcoes = ["Excelente", "Bom", "Satisfatório", "Insatisfatório", "Precisa melhorar"];
-  const pontuacoes = [5, 4, 3, 2, 1];
+  let nivelAcesso: NivelAcesso;
+  while (true) {
+    const nivel = await ui.perguntar(
+      "Informe seu nível de acesso (admin / rh / gestor / colaborador): "
+    );
+    const nivelLower = nivel.toLowerCase();
+    if (["admin", "rh", "gestor", "colaborador"].includes(nivelLower)) {
+      nivelAcesso = nivelLower as NivelAcesso;
+      break;
+    }
+    console.log("Nível de acesso inválido. Tente novamente.");
+  }
 
-  const perguntasDesempenho = [
-    "Qualidade da entrega e cumprimento das metas",
-    "Organização e produtividade",
-    "Resolução de problemas",
-    "Comprometimento com prazos",
-  ];
+  // Acesso ao CRUD de perguntas
+  if (nivelAcesso === "admin" || nivelAcesso === "rh") {
+    await menuQuestoes.exibirMenu(nivelAcesso);
+  }
 
-  const perguntasPotencial = [
-    "Capacidade de aprender",
-    "Abertura para feedback",
-    "Perfil de liderança",
-    "Capacidade de lidar com desafios",
-  ];
+  // Escolha de perguntas para avaliação
+  const perguntasAtivas = banco.listar(true);
+  if (perguntasAtivas.length === 0) {
+    console.log("❌ Não há perguntas ativas para realizar a avaliação.");
+    ui.fechar();
+    return;
+  }
 
-  const qDesempenho = new Questionario(perguntasDesempenho, opcoes, pontuacoes, ui);
-  const qPotencial = new Questionario(perguntasPotencial, opcoes, pontuacoes, ui);
+  const perguntasDesempenho = perguntasAtivas.filter(p => p.categoria === "desempenho");
+  const perguntasPotencial = perguntasAtivas.filter(p => p.categoria === "potencial");
+
+  if (perguntasDesempenho.length === 0 || perguntasPotencial.length === 0) {
+    console.log("❌ É necessário ter perguntas ativas de 'desempenho' e 'potencial' para a avaliação.");
+    ui.fechar();
+    return;
+  }
+
+  const listaPerguntas = perguntasAtivas;
+
+  const qGestor = new Questionario(listaPerguntas, ui);
+  const qColaborador = new Questionario(listaPerguntas, ui);
 
   console.log("=== Avaliação do Gestor ===");
+  const respostasGestor = await qGestor.coletarRespostas();
 
-  console.log("\n Avaliação de DESEMPENHO do Colaborador realizada pelo Gestor:");
-  const respDesempenhoGestor = await qDesempenho.coletarRespostas();
-  const mediaDesempenhoGestor = qDesempenho.calcularMedia(respDesempenhoGestor);
-  console.clear();
-  console.log("=== RESULTADO DA AVALIAÇÃO DE DESEMPENHO FEITA DO GESTOR AO COLABORADOR ===");
-  console.log(`Desempenho do Colaborador: ${mediaDesempenhoGestor.toFixed(2)}`);
+  console.log("\n=== Autoavaliação do Colaborador ===");
+  const respostasColab = await qColaborador.coletarRespostas();
 
+  const filtrarPorCategoria = (respostas: Resposta[], categoria: "desempenho" | "potencial") => {
+    const idsPerguntas = listaPerguntas
+      .filter(p => p.categoria === categoria)
+      .map(p => p.id);
+    return respostas.filter(r => idsPerguntas.includes(r.perguntaId));
+  };
 
-  console.log("\nAvaliação de POTENCIAL do Colaborador realizada pelo Gestor:");
-  const respPotencialGestor = await qPotencial.coletarRespostas();
-  const mediaPotencialGestor = qPotencial.calcularMedia(respPotencialGestor);
+  const respostasDesempenhoGestor = filtrarPorCategoria(respostasGestor, "desempenho");
+  const respostasPotencialGestor = filtrarPorCategoria(respostasGestor, "potencial");
+  const respostasDesempenhoColab = filtrarPorCategoria(respostasColab, "desempenho");
+  const respostasPotencialColab = filtrarPorCategoria(respostasColab, "potencial");
 
-
-  console.log("\n\n=== RESULTADO FINAL DA AVALIAÇÃO FEITA DO GESTOR AO COLABORADOR ===");
-  console.log(`Avaliação de Desempenho do Colaborador feita pelo Gestor: ${mediaDesempenhoGestor.toFixed(2)}`);
-  console.log(`Avaliação de Potencial do Colaborador feita pelo Gestor:   ${mediaPotencialGestor.toFixed(2)}`);
-
-  console.log("\nAutoavaliação de DESEMPENHO DO COLABORADOR:");
-
-  const respDesempenhoAuto = await qDesempenho.coletarRespostas();
-  const mediaDesempenhoAuto = qDesempenho.calcularMedia(respDesempenhoAuto);
-
-  // LIMPA A TELA ANTES DE EXIBIR O RESULTADO MÉDIA POTENCIAL DO GESTOR PARA O AVALIADO
-  console.clear();
-  console.log("=== RESULTADO DA AUTOAVALIAÇÃO DE DESEMPENHO FEITA PELO COLABORADOR ===");
-  console.log(`Desempenho do Colaborador: ${mediaDesempenhoAuto.toFixed(2)}`);
-
-  console.log("\n Autoavaliação de POTENCIAL DO COLABORADOR:");
-
-  const respPotencialAuto = await qPotencial.coletarRespostas();
-  const mediaPotencialAuto = qPotencial.calcularMedia(respPotencialAuto);
-
-  console.log("\n\n\n=== RESULTADO DA AUTOAVALIAÇÃO FEITA PELO COLABORADOR===");
-  console.log(`Desempenho (Auto): ${mediaDesempenhoAuto.toFixed(2)}`);
-  console.log(`Potencial (Auto):   ${mediaPotencialAuto.toFixed(2)}`);
+  const mediaDesempenhoGestor = qGestor.calcularMedia(respostasDesempenhoGestor);
+  const mediaPotencialGestor = qGestor.calcularMedia(respostasPotencialGestor);
+  const mediaDesempenhoAuto = qColaborador.calcularMedia(respostasDesempenhoColab);
+  const mediaPotencialAuto = qColaborador.calcularMedia(respostasPotencialColab);
 
   // =======================
   // CÁLCULO FINAL

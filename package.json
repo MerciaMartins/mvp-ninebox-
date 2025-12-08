@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "start":"tsx ./src/main.ts",
+    "start": "tsx ./src/main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/MerciaMartins/mvp-ninebox-avalia-o/issues"
   },
-  "homepage": "https://github.com/MerciaMartins/mvp-ninebox-avalia-o#readme"
+  "homepage": "https://github.com/MerciaMartins/mvp-ninebox-avalia-o#readme",
+  "dependencies": {
+    "tsx": "^4.21.0"
+  }
 }
