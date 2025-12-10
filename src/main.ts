@@ -13,22 +13,36 @@ async function main() {
   const menuQuestoes = new MenuQuestoes(banco, ui);
 
   let nivelAcesso: NivelAcesso;
+
   while (true) {
-    const nivel = await ui.perguntar(
-      "Informe seu nível de acesso (admin / rh / gestor / colaborador): "
-    );
-    const nivelLower = nivel.toLowerCase();
-    if (["admin", "rh", "gestor", "colaborador"].includes(nivelLower)) {
-      nivelAcesso = nivelLower as NivelAcesso;
-      break;
+    const nivel = await ui.perguntar(`
+     Informe seu nível de acesso:
+     1 - Admin
+     2 - RH
+     3 - Gestor
+     4 - Colaborador
+     Digite o número correspondente:`);
+
+    const nivelNumber = parseInt(nivel);
+    if (![1, 2, 3, 4].includes(nivelNumber)) {
+      console.log("Nível de acesso inválido. Tente novamente.");
+      continue;
     }
-    console.log("Nível de acesso inválido. Tente novamente.");
+
+    nivelAcesso = nivelNumber as NivelAcesso;
+
+    // Acesso ao CRUD de perguntas
+    if (nivelAcesso === 1 || nivelAcesso === 2) {
+      await menuQuestoes.exibirMenu(nivelAcesso);
+    }
+
+    // Se for Gestor (3) ou Colaborador (4), prossegue para a avaliação.
+    if (nivelAcesso === 3 || nivelAcesso === 4) {
+      break; // Sai do loop para iniciar a avaliação
+    }
+    // Caso contrário, volta para o menu de nível de acesso (o continue já está implícito no loop)
   }
 
-  // Acesso ao CRUD de perguntas
-  if (nivelAcesso === "admin" || nivelAcesso === "rh") {
-    await menuQuestoes.exibirMenu(nivelAcesso);
-  }
 
   // Escolha de perguntas para avaliação
   const perguntasAtivas = banco.listar(true);

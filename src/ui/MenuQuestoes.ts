@@ -1,15 +1,15 @@
 import { BancoQuestoes } from "../core/BancoQuestoes";
-import { InterfaceUsuario } from "./ConsoleInterface";
+import { ConsoleInterface } from "./ConsoleInterface";
 import { PapelUsuario, Opcao, Pergunta } from "../core/Tipos";
 
 export class MenuQuestoes {
     constructor(
         private banco: BancoQuestoes,
-        private ui: InterfaceUsuario
+        private ui: ConsoleInterface
     ) { }
 
     async exibirMenu(nivel: PapelUsuario): Promise<void> {
-        if (nivel !== "admin" && nivel !== "rh") {
+        if (nivel !== 1 && nivel !== 2) {
             console.log("\n❌ Você não tem permissão para gerenciar perguntas.");
             return;
         }
@@ -68,9 +68,17 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
     }
 
     private async criarPergunta(): Promise<void> {
-        console.log("\n--- CRIAR NOVA PERGUNTA ---");
+        console.log("\n--- CRIAR NOVA PERGUNTA (Digite 0 para voltar) ---");
         const texto = await this.ui.perguntar("Digite o texto da pergunta: ");
-        let categoria = await this.ui.perguntar("Categoria (desempenho/potencial): ");
+        if (texto === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
+        let categoria = await this.ui.perguntar("Categoria (desempenho/potencial, Digite 0 para voltar): ");
+        if (categoria === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
         categoria = categoria.toLowerCase();
 
         if (categoria !== "desempenho" && categoria !== "potencial") {
@@ -79,9 +87,13 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
         }
 
         const opcoes: Opcao[] = [];
-        console.log("--- OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5) ---");
+        console.log("--- OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5. Digite 0 para voltar a qualquer momento) ---");
         for (let i = 1; i <= 5; i++) {
             const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${i}): `);
+            if (textoOpcao === "0") {
+                console.log("Operação cancelada.");
+                return;
+            }
             opcoes.push({ texto: textoOpcao, pontuacao: i });
         }
 
@@ -97,18 +109,33 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
 
     private async atualizarPergunta(): Promise<void> {
         this.listarPerguntas();
-        const id = await this.ui.perguntar("\nID da pergunta para atualizar: ");
+        const id = await this.ui.perguntar("\nID da pergunta para atualizar (Digite 0 para voltar): ");
+        if (id === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
 
         const pergunta = this.banco.obter(id);
         if (!pergunta) {
             console.log("❌ Pergunta não encontrada.");
             return;
         }
-
         console.log(`\n--- ATUALIZAR PERGUNTA (ID: ${id}) ---`);
-        const novoTexto = await this.ui.perguntar(`Texto atual: ${pergunta.texto}\nNovo texto (ou Enter para manter): `);
-        const novaCat = await this.ui.perguntar(`Categoria atual: ${pergunta.categoria}\nNova categoria (desempenho/potencial, ou Enter para manter): `);
-        const novaAtiva = await this.ui.perguntar(`Ativa atual: ${pergunta.ativa ? "Sim" : "Não"}\nNova ativa (sim/não, ou Enter para manter): `);
+        const novoTexto = await this.ui.perguntar(`Texto atual: ${pergunta.texto}\nNovo texto (ou Enter para manter, Digite 0 para voltar): `);
+        if (novoTexto === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
+        const novaCat = await this.ui.perguntar(`Categoria atual: ${pergunta.categoria}\nNova categoria (desempenho/potencial, ou Enter para manter, Digite 0 para voltar): `);
+        if (novaCat === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
+        const novaAtiva = await this.ui.perguntar(`Ativa atual: ${pergunta.ativa ? "Sim" : "Não"}\nNova ativa (sim/não, ou Enter para manter, Digite 0 para voltar): `);
+        if (novaAtiva === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
 
         const dadosAtualizacao: Partial<Omit<Pergunta, "id">> = {};
 
@@ -136,12 +163,20 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
             }
         }
 
-        const atualizarOpcoes = await this.ui.perguntar("Deseja atualizar as opções de resposta? (s/n, Enter para n): ");
+        const atualizarOpcoes = await this.ui.perguntar("Deseja atualizar as opções de resposta? (s/n, Enter para n, Digite 0 para voltar): ");
+        if (atualizarOpcoes === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
         if (atualizarOpcoes.toLowerCase() === "s") {
             const novasOpcoes: Opcao[] = [];
-            console.log("--- NOVAS OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5) ---");
+            console.log("--- NOVAS OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5. Digite 0 para voltar a qualquer momento) ---");
             for (let i = 1; i <= 5; i++) {
                 const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${i}): `);
+                if (textoOpcao === "0") {
+                    console.log("Operação cancelada.");
+                    return;
+                }
                 novasOpcoes.push({ texto: textoOpcao, pontuacao: i });
             }
             dadosAtualizacao.opcoes = novasOpcoes;
@@ -159,7 +194,11 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
 
     private async excluirPergunta(): Promise<void> {
         this.listarPerguntas();
-        const id = await this.ui.perguntar("\nID da pergunta para excluir: ");
+        const id = await this.ui.perguntar("\nID da pergunta para excluir (Digite 0 para voltar): ");
+        if (id === "0") {
+            console.log("Operação cancelada.");
+            return;
+        }
 
         const ok = this.banco.excluir(id);
         if (ok) console.log("✔ Pergunta excluída!");

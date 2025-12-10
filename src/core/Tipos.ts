@@ -1,5 +1,11 @@
 // src/core/Tipos.ts
-export type PapelUsuario = "admin" | "rh" | "gestor" | "colaborador";
+export enum PapelUsuario {
+  admin = 1,
+  rh = 2,
+  gestor = 3,
+  colaborador = 4,
+}
+
 export type NivelAcesso = PapelUsuario;
 
 export interface Opcao {
