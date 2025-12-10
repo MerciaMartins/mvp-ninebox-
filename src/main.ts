@@ -2,53 +2,48 @@
 import { Questionario } from "./core/Questionario";
 import { BancoQuestoes } from "./core/BancoQuestoes";
 import { MenuQuestoes } from "./ui/MenuQuestoes";
-import { NivelAcesso, Resposta } from "./core/Tipos";
+import { NivelAcesso, Resposta, Usuario, PapelUsuario, ResultadoAvaliacao, Pergunta } from "./core/Tipos";
 import { NineBox } from "./core/NineBox";
 import { ConsoleInterface } from "./ui/ConsoleInterface";
 
-async function main() {
-  const ui = new ConsoleInterface();
-  const banco = new BancoQuestoes();
-  banco.popularExemplo();
-  const menuQuestoes = new MenuQuestoes(banco, ui);
+// Variáveis globais para simular o estado do sistema
+const colaborador: Usuario = {
+  id: "colab-001",
+  nome: "Colaborador Teste",
+  papel: PapelUsuario.colaborador,
+};
 
-  let nivelAcesso: NivelAcesso;
+const gestor: Usuario = {
+  id: "gestor-001",
+  nome: "Gestor Teste",
+  papel: PapelUsuario.gestor,
+};
 
-  while (true) {
-    const nivel = await ui.perguntar(`
-     Informe seu nível de acesso:
-     1 - Admin
-     2 - RH
-     3 - Gestor
-     4 - Colaborador
-     Digite o número correspondente:`);
+function filtrarPorCategoria(respostas: Resposta[], listaPerguntas: Pergunta[], categoria: "desempenho" | "potencial"): Resposta[] {
+  const idsPerguntas = listaPerguntas
+    .filter(p => p.categoria === categoria)
+    .map(p => p.id);
+  return respostas.filter(r => idsPerguntas.includes(r.perguntaId));
+}
 
-    const nivelNumber = parseInt(nivel);
-    if (![1, 2, 3, 4].includes(nivelNumber)) {
-      console.log("Nível de acesso inválido. Tente novamente.");
-      continue;
-    }
+function exibirResultadoFinal(resultado: ResultadoAvaliacao): void {
+  console.log("\n===== RESULTADO FINAL DA AVALIAÇÃO DO COLABORADOR =====");
+  console.log("Desempenho do colaborador:", resultado.mediaDesempenho.toFixed(2));
+  console.log("Potencial do colaborador:", resultado.mediaPotencial.toFixed(2));
+  console.log(`O colaborador ficou no quadrante ${resultado.quadrante}: ${resultado.descricao}`);
+  console.log("=======================================================");
+}
 
-    nivelAcesso = nivelNumber as NivelAcesso;
-
-    // Acesso ao CRUD de perguntas
-    if (nivelAcesso === 1 || nivelAcesso === 2) {
-      await menuQuestoes.exibirMenu(nivelAcesso);
-    }
-
-    // Se for Gestor (3) ou Colaborador (4), prossegue para a avaliação.
-    if (nivelAcesso === 3 || nivelAcesso === 4) {
-      break; // Sai do loop para iniciar a avaliação
-    }
-    // Caso contrário, volta para o menu de nível de acesso (o continue já está implícito no loop)
-  }
-
-
-  // Escolha de perguntas para avaliação
+async function realizarAvaliacao(
+  avaliador: Usuario,
+  avaliado: Usuario,
+  banco: BancoQuestoes,
+  ui: ConsoleInterface,
+  tipoAvaliacao: "gestor" | "colaborador"
+): Promise<void> {
   const perguntasAtivas = banco.listar(true);
   if (perguntasAtivas.length === 0) {
     console.log("❌ Não há perguntas ativas para realizar a avaliação.");
-    ui.fechar();
     return;
   }
 
@@ -57,52 +52,153 @@ async function main() {
 
   if (perguntasDesempenho.length === 0 || perguntasPotencial.length === 0) {
     console.log("❌ É necessário ter perguntas ativas de 'desempenho' e 'potencial' para a avaliação.");
-    ui.fechar();
     return;
   }
 
-  const listaPerguntas = perguntasAtivas;
+  const questionario = new Questionario(perguntasAtivas, ui);
 
-  const qGestor = new Questionario(listaPerguntas, ui);
-  const qColaborador = new Questionario(listaPerguntas, ui);
+  if (tipoAvaliacao === "gestor") {
+    console.log(`\n=== Avaliação do Gestor (${avaliador.nome}) sobre o Colaborador (${avaliado.nome}) ===`);
+    const respostas = await questionario.coletarRespostas();
+    
+    if (respostas.length === 0) {
+      // Desistiu da avaliação, retorna sem salvar ou processar
+      return;
+    }
 
-  console.log("=== Avaliação do Gestor ===");
-  const respostasGestor = await qGestor.coletarRespostas();
+    avaliado.respostasGestor = respostas;
 
-  console.log("\n=== Autoavaliação do Colaborador ===");
-  const respostasColab = await qColaborador.coletarRespostas();
+    const respostasDesempenho = filtrarPorCategoria(respostas, perguntasAtivas, "desempenho");
+    const respostasPotencial = filtrarPorCategoria(respostas, perguntasAtivas, "potencial");
 
-  const filtrarPorCategoria = (respostas: Resposta[], categoria: "desempenho" | "potencial") => {
-    const idsPerguntas = listaPerguntas
-      .filter(p => p.categoria === categoria)
-      .map(p => p.id);
-    return respostas.filter(r => idsPerguntas.includes(r.perguntaId));
-  };
+    const mediaDesempenho = questionario.calcularMedia(respostasDesempenho);
+    const mediaPotencial = questionario.calcularMedia(respostasPotencial);
 
-  const respostasDesempenhoGestor = filtrarPorCategoria(respostasGestor, "desempenho");
-  const respostasPotencialGestor = filtrarPorCategoria(respostasGestor, "potencial");
-  const respostasDesempenhoColab = filtrarPorCategoria(respostasColab, "desempenho");
-  const respostasPotencialColab = filtrarPorCategoria(respostasColab, "potencial");
+    console.log("\n===== RESULTADO INDIVIDUAL DA AVALIAÇÃO DO GESTOR =====");
+    console.log("Desempenho do colaborador (Gestor):", mediaDesempenho.toFixed(2));
+    console.log("Potencial do colaborador (Gestor):", mediaPotencial.toFixed(2));
+    console.log("=======================================================");
 
-  const mediaDesempenhoGestor = qGestor.calcularMedia(respostasDesempenhoGestor);
-  const mediaPotencialGestor = qGestor.calcularMedia(respostasPotencialGestor);
-  const mediaDesempenhoAuto = qColaborador.calcularMedia(respostasDesempenhoColab);
-  const mediaPotencialAuto = qColaborador.calcularMedia(respostasPotencialColab);
+  } else if (tipoAvaliacao === "colaborador") {
+    console.log(`\n=== Autoavaliação do Colaborador (${avaliado.nome}) ===`);
+    const respostas = await questionario.coletarRespostas();
+    
+    if (respostas.length === 0) {
+      // Desistiu da autoavaliação, retorna sem salvar ou processar
+      return;
+    }
 
-  // =======================
-  // CÁLCULO FINAL
-  // =======================
+    avaliado.respostasColaborador = respostas;
+
+    const respostasDesempenho = filtrarPorCategoria(respostas, perguntasAtivas, "desempenho");
+    const respostasPotencial = filtrarPorCategoria(respostas, perguntasAtivas, "potencial");
+
+    const mediaDesempenho = questionario.calcularMedia(respostasDesempenho);
+    const mediaPotencial = questionario.calcularMedia(respostasPotencial);
+
+    console.log("\n===== RESULTADO INDIVIDUAL DA AUTOAVALIAÇÃO =====");
+    console.log("Desempenho do colaborador (Auto):", mediaDesempenho.toFixed(2));
+    console.log("Potencial do colaborador (Auto):", mediaPotencial.toFixed(2));
+    console.log("=================================================");
+  }
+}
+
+function calcularResultadoFinal(avaliado: Usuario, nineBox: NineBox, banco: BancoQuestoes): ResultadoAvaliacao | undefined {
+  if (!avaliado.respostasGestor || !avaliado.respostasColaborador) {
+    return undefined;
+  }
+
+  const perguntasAtivas = banco.listar(true);
+  const respostasGestor = avaliado.respostasGestor;
+  const respostasColab = avaliado.respostasColaborador;
+
+  const questionario = new Questionario([], new ConsoleInterface()); // Usado apenas para o método calcularMedia
+
+  const respostasDesempenhoGestor = filtrarPorCategoria(respostasGestor, perguntasAtivas, "desempenho");
+  const respostasPotencialGestor = filtrarPorCategoria(respostasGestor, perguntasAtivas, "potencial");
+  const respostasDesempenhoColab = filtrarPorCategoria(respostasColab, perguntasAtivas, "desempenho");
+  const respostasPotencialColab = filtrarPorCategoria(respostasColab, perguntasAtivas, "potencial");
+
+  const mediaDesempenhoGestor = questionario.calcularMedia(respostasDesempenhoGestor);
+  const mediaPotencialGestor = questionario.calcularMedia(respostasPotencialGestor);
+  const mediaDesempenhoAuto = questionario.calcularMedia(respostasDesempenhoColab);
+  const mediaPotencialAuto = questionario.calcularMedia(respostasPotencialColab);
 
   const mediaFinalDesempenho = (mediaDesempenhoGestor + mediaDesempenhoAuto) / 2;
   const mediaFinalPotencial = (mediaPotencialGestor + mediaPotencialAuto) / 2;
 
-  const nineBox = new NineBox();
   const classificacao = nineBox.classificar(mediaFinalDesempenho, mediaFinalPotencial);
 
-  console.log("\n===== RESULTADO FINAL =====");
-  console.log("Desempenho do colaborador:", mediaFinalDesempenho.toFixed(2));
-  console.log("Potencial do colaborador:", mediaFinalPotencial.toFixed(2));
-  console.log(`O colaborador ficou no quadrante ${classificacao.quadrante}: ${classificacao.descricao}`);
+  return {
+    mediaDesempenho: mediaFinalDesempenho,
+    mediaPotencial: mediaFinalPotencial,
+    quadrante: classificacao.quadrante,
+    descricao: classificacao.descricao,
+  };
+}
+
+async function main() {
+  const ui = new ConsoleInterface();
+  const banco = new BancoQuestoes();
+  banco.popularExemplo();
+  const menuQuestoes = new MenuQuestoes(banco, ui);
+  const nineBox = new NineBox();
+
+  while (true) {
+    const nivel = await ui.perguntar(`
+     Informe seu nível de acesso:
+     1 - Admin
+     2 - RH
+     3 - Gestor
+     4 - Colaborador
+     5 - Visualizar Resultado Final
+     0 - Sair
+     Digite o número correspondente:`);
+
+    const nivelNumber = parseInt(nivel);
+
+    if (nivelNumber === 0) {
+      console.log("Saindo do sistema.");
+      break;
+    }
+
+    if (nivelNumber === 5) {
+      // Tenta calcular o resultado final antes de exibir
+      const novoResultado = calcularResultadoFinal(colaborador, nineBox, banco);
+      if (novoResultado) {
+        colaborador.resultadoFinal = novoResultado;
+        exibirResultadoFinal(colaborador.resultadoFinal);
+      } else {
+        console.log("\n❌ O resultado final não pode ser calculado. Certifique-se de que o Gestor e o Colaborador realizaram suas avaliações.");
+      }
+      continue;
+    }
+
+    if (![1, 2, 3, 4].includes(nivelNumber)) {
+      console.log("Nível de acesso inválido. Tente novamente.");
+      continue;
+    }
+
+    const nivelAcesso = nivelNumber as PapelUsuario;
+
+    // 1 e 2 (Admin/RH) - Acesso ao CRUD de perguntas
+    if (nivelAcesso === PapelUsuario.admin || nivelAcesso === PapelUsuario.rh) {
+      await menuQuestoes.exibirMenu(nivelAcesso);
+      continue;
+    }
+
+    // 3 (Gestor) - Realiza a avaliação
+    if (nivelAcesso === PapelUsuario.gestor) {
+      await realizarAvaliacao(gestor, colaborador, banco, ui, "gestor");
+      continue; // Volta para o menu de nível de acesso
+    }
+
+    // 4 (Colaborador) - Realiza a autoavaliação
+    if (nivelAcesso === PapelUsuario.colaborador) {
+      await realizarAvaliacao(colaborador, colaborador, banco, ui, "colaborador");
+      continue; // Volta para o menu de nível de acesso
+    }
+  }
 
   ui.fechar();
 }

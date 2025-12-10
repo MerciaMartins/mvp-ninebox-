@@ -89,12 +89,12 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
         const opcoes: Opcao[] = [];
         console.log("--- OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5. Digite 0 para voltar a qualquer momento) ---");
         for (let i = 1; i <= 5; i++) {
-            const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${i}): `);
+            const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${6 - i}): `); //1 2 3 4 5 - 5 4 3 2 1 -------- 6 6 6 6 6
             if (textoOpcao === "0") {
                 console.log("Operação cancelada.");
                 return;
             }
-            opcoes.push({ texto: textoOpcao, pontuacao: i });
+            opcoes.push({ texto: textoOpcao, pontuacao: 6 - i });
         }
 
         this.banco.criar({
@@ -171,13 +171,13 @@ ${p.opcoes.map(o => `  - ${o.texto} (Pontuação: ${o.pontuacao})`).join("\n")}
         if (atualizarOpcoes.toLowerCase() === "s") {
             const novasOpcoes: Opcao[] = [];
             console.log("--- NOVAS OPÇÕES DE RESPOSTA (5 opções, pontuação de 1 a 5. Digite 0 para voltar a qualquer momento) ---");
-            for (let i = 1; i <= 5; i++) {
-                const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${i}): `);
+            for (let i = 1; i <= 5; i++) {                
+                const textoOpcao = await this.ui.perguntar(`Texto da opção ${i} (Pontuação ${6 - i}): `); //1 2 3 4 5
                 if (textoOpcao === "0") {
                     console.log("Operação cancelada.");
                     return;
                 }
-                novasOpcoes.push({ texto: textoOpcao, pontuacao: i });
+                novasOpcoes.push({ texto: textoOpcao, pontuacao: 6 - i });
             }
             dadosAtualizacao.opcoes = novasOpcoes;
         }

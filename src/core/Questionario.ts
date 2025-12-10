@@ -18,13 +18,22 @@ export class Questionario {
         console.log(`${opcao.pontuacao} - ${opcao.texto}`)
       );
 
-      let digitado = await this.ui.perguntar("Escolha uma opção: ");
+      let digitado = await this.ui.perguntar("Escolha uma opção (Digite 0 para desistir da avaliação): ");
+      if (digitado === "0") {
+        console.log("Avaliação cancelada.");
+        return []; // Retorna array vazio para indicar desistência
+      }
+
       let pontuacao = parseInt(digitado);
       let indice = pergunta.opcoes.findIndex(opcao => opcao.pontuacao === pontuacao);
 
       while (isNaN(pontuacao) || pontuacao < 1 || pontuacao > pergunta.opcoes.length) {
         console.log("Opção inválida! Tente novamente.");
-        digitado = await this.ui.perguntar("Escolha uma opção: ");
+        digitado = await this.ui.perguntar("Escolha uma opção (Digite 0 para desistir da avaliação): ");
+        if (digitado === "0") {
+          console.log("Avaliação cancelada.");
+          return []; // Retorna array vazio para indicar desistência
+        }
         pontuacao = parseInt(digitado);
         indice = pergunta.opcoes.findIndex(opcao => opcao.pontuacao === pontuacao);
       }

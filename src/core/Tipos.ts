@@ -26,3 +26,24 @@ export interface Resposta {
   indiceOpcao: number;
   pontuacao: number;
 }
+
+export interface ResultadoAvaliacao {
+  mediaDesempenho: number;
+  mediaPotencial: number;
+  quadrante: string;
+  descricao: string;
+}
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  papel: PapelUsuario;
+  // Para simplificar, vamos assumir que o colaborador é o único avaliado
+  // e o gestor é o único avaliador.
+  // Em um sistema real, isso seria mais complexo.
+  // Aqui, vamos usar um campo para armazenar o resultado da avaliação do gestor sobre o colaborador
+  // e outro para a autoavaliação do colaborador.
+  respostasGestor?: Resposta[];
+  respostasColaborador?: Resposta[];
+  resultadoFinal?: ResultadoAvaliacao;
+}

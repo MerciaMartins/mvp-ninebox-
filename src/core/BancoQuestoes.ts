@@ -38,24 +38,78 @@ export class BancoQuestoes {
         this.criar({
             texto: "Entrega resultados de qualidade consistentemente?",
             opcoes: [
-                { texto: "Nunca", pontuacao: 1 },
-                { texto: "Raramente", pontuacao: 2 },
-                { texto: "Às vezes", pontuacao: 3 },
-                { texto: "Quase sempre", pontuacao: 4 },
                 { texto: "Sempre", pontuacao: 5 },
+                { texto: "Quase sempre", pontuacao: 4 },
+                { texto: "Às vezes", pontuacao: 3 },
+                { texto: "Raramente", pontuacao: 2 },
+                { texto: "Nunca", pontuacao: 1 },
+            ],
+            categoria: "desempenho",
+            ativa: true,
+        });
+
+
+        this.criar({
+            texto: "Cumpre prazos e entrega tarefas dentro do tempo esperado?",
+            opcoes: [
+                { texto: "Sempre", pontuacao: 5 },
+                { texto: "Quase sempre", pontuacao: 4 },
+                { texto: "Às vezes", pontuacao: 3 },
+                { texto: "Raramente", pontuacao: 2 },
+                { texto: "Nunca", pontuacao: 1 },
             ],
             categoria: "desempenho",
             ativa: true,
         });
 
         this.criar({
+            texto: "Resolve problemas e executa tarefas com autonomia e eficiência?",
+            opcoes: [
+                { texto: "Sempre", pontuacao: 5 },
+                { texto: "Quase sempre", pontuacao: 4 },
+                { texto: "Às vezes", pontuacao: 3 },
+                { texto: "Raramente", pontuacao: 2 },
+                { texto: "Nunca", pontuacao: 1 },
+            ],
+            categoria: "desempenho",
+            ativa: true,
+        });
+
+
+        this.criar({
             texto: "Demonstra potencial para assumir responsabilidades maiores?",
             opcoes: [
-                { texto: "Não", pontuacao: 1 },
-                { texto: "Pouco", pontuacao: 2 },
-                { texto: "Moderado", pontuacao: 3 },
-                { texto: "Alto", pontuacao: 4 },
                 { texto: "Muito alto", pontuacao: 5 },
+                { texto: "Alto", pontuacao: 4 },
+                { texto: "Moderado", pontuacao: 3 },
+                { texto: "Pouco", pontuacao: 2 },
+                { texto: "Não", pontuacao: 1 },
+            ],
+            categoria: "potencial",
+            ativa: true,
+        });
+
+        this.criar({
+            texto: "Demonstra capacidade de aprender rapidamente novos processos e ferramentas?",
+            opcoes: [
+                { texto: "Sempre", pontuacao: 5 },
+                { texto: "Quase sempre", pontuacao: 4 },
+                { texto: "Às vezes", pontuacao: 3 },
+                { texto: "Raramente", pontuacao: 2 },
+                { texto: "Nunca", pontuacao: 1 },
+            ],
+            categoria: "potencial",
+            ativa: true,
+        });
+
+        this.criar({
+            texto: "Mostra iniciativa e busca desenvolver novas habilidades constantemente?",
+            opcoes: [
+                { texto: "Sempre", pontuacao: 5 },
+                { texto: "Quase sempre", pontuacao: 4 },
+                { texto: "Às vezes", pontuacao: 3 },
+                { texto: "Raramente", pontuacao: 2 },
+                { texto: "Nunca", pontuacao: 1 },
             ],
             categoria: "potencial",
             ativa: true,
