@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/MerciaMartins/mvp-ninebox-avalia-o#readme",
   "dependencies": {
+    "@types/sqlite3": "^3.1.11",
     "tsx": "^4.21.0"
   }
 }
